@@ -126,12 +126,13 @@ app.use((req, res) => {
 // Error handler
 app.use(errorHandler);
 
-const DEFAULT_PORT = Number(process.env.PORT) || 5000;
-const MAX_PORT_RETRIES = 20;
+const IS_PROD = process.env.NODE_ENV === 'production';
+const PORT = Number(process.env.PORT) || 5000;
+const MAX_PORT_RETRIES = IS_PROD ? 0 : 20;
 
 function startServer(port, retries = 0) {
   const server = app.listen(port, () => {
-    console.log(`🚀 Server running on http://localhost:${port}`);
+    console.log(`🚀 Server running on port ${port}`);
     console.log(`📝 Environment: ${process.env.NODE_ENV}`);
     if (retries > 0) {
       console.log(`ℹ️ Port auto-fallback used after ${retries} attempt(s)`);
@@ -146,9 +147,9 @@ function startServer(port, retries = 0) {
       return;
     }
 
-    console.error('❌ Failed to start server:', error.message);
+    console.error(`❌ Failed to start server on port ${port}:`, error.message);
     process.exit(1);
   });
 }
 
-startServer(DEFAULT_PORT);
+startServer(PORT);

@@ -99,8 +99,8 @@ Should show your commits.
 5. **Settings**:
    - **Name**: `api-mcq-maker`
    - **Environment**: Node
-   - **Build Command**: `cd backend && npm install`
-   - **Start Command**: `cd backend && npm start`
+   - **Build Command**: `npm install`
+   - **Start Command**: `npm start`
    - **Plan**: Free (okay for testing)
 6. **Environment Variables**:
    - Add all variables from the Pre-Deployment checklist above

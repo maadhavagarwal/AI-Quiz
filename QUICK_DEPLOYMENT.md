@@ -100,8 +100,8 @@ NEXT_PUBLIC_FIREBASE_APP_ID        (from your Firebase console)
 ### Configure Service
 1. **Name**: `api-mcq-maker`
 2. **Environment**: `Node`
-3. **Build Command**: `cd backend && npm install`
-4. **Start Command**: `cd backend && npm start`
+3. **Build Command**: `npm install`
+4. **Start Command**: `npm start`
 5. **Plan**: Free (750 free compute hours/month)
 6. Click "Create Web Service"
 
