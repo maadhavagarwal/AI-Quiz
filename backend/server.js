@@ -105,7 +105,12 @@ mongoose.connect(process.env.MONGODB_URI)
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'Server is running', timestamp: new Date() });
+  res.json({ 
+    status: 'Server is running', 
+    timestamp: new Date(),
+    database: mongoose.connection.readyState === 1 ? 'connected' : 'disconnected',
+    env: process.env.NODE_ENV
+  });
 });
 
 // API Routes
