@@ -6,7 +6,13 @@ import { AuthProvider } from '@/context/AuthContext';
 export const metadata: Metadata = {
   title: 'AI MCQ Maker - Intelligent Quiz Generation Platform',
   description: 'Generate high-quality multiple-choice questions using AI. Perfect for teachers and educators.',
-  viewport: 'width=device-width, initial-scale=1, maximum-scale=1, viewport-fit=cover',
+};
+
+export const viewport = {
+  width: 'device-width',
+  initialScale: 1,
+  maximumScale: 1,
+  viewportFit: 'cover',
 };
 
 export default function RootLayout({
