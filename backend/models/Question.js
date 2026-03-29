@@ -38,12 +38,42 @@ const questionSchema = new mongoose.Schema({
   },
   generatedBy: {
     type: String,
-    enum: ['gemini', 'groq', 'ollama', 'hybrid', 'mixed', 'manual', 'unknown'],
-    default: 'gemini',
+    enum: ['custom', 'gemini', 'groq', 'ollama', 'hybrid', 'mixed', 'manual', 'unknown'],
+    default: 'custom',
   },
   isApproved: {
     type: Boolean,
     default: false,
+  },
+  trainingStats: {
+    attempts: {
+      type: Number,
+      default: 0,
+    },
+    correct: {
+      type: Number,
+      default: 0,
+    },
+    incorrect: {
+      type: Number,
+      default: 0,
+    },
+    totalTimeSpent: {
+      type: Number,
+      default: 0,
+    },
+    lastEvaluatedAt: {
+      type: Date,
+      default: null,
+    },
+  },
+  distilledFromLLM: {
+    type: Boolean,
+    default: false,
+  },
+  distillationQualityScore: {
+    type: Number,
+    default: 0,
   },
   createdAt: {
     type: Date,

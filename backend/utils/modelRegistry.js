@@ -7,6 +7,15 @@
  */
 
 export const ACTIVE_MODELS = {
+  custom: {
+    primary: 'CustomQuizModel-v1.0',
+    alternatives: [],
+    description: 'In-house NLP quiz generator with LLM fine-tuning layer (no API key required)',
+    docs: 'backend/utils/customQuizModel.js',
+    capabilities: ['standalone', 'fine-tuning', 'distillation'],
+    requiresApiKey: false,
+  },
+
   groq: {
     primary: 'llama-3.3-70b-versatile',
     alternatives: [

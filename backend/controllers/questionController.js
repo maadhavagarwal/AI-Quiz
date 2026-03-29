@@ -1,7 +1,8 @@
 import Question from '../models/Question.js';
 import Quiz from '../models/Quiz.js';
-import { generateMCQsWithFallback, generateMCQsMixed } from '../utils/aiServiceSimplified.js';
+import { generateMCQsWithFallback, generateMCQsMixed } from '../utils/aiOrchestrator.js';
 import { cleanText, validateTextLength, extractTextFromFile } from '../utils/textExtractor.js';
+import { getDistilledGuidance, markQuestionAsDistilled } from '../utils/distillationService.js';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -10,7 +11,14 @@ const __dirname = path.dirname(__filename);
 
 export const generateQuestions = async (req, res) => {
   try {
-    const { quizId, text, numberOfQuestions = 5, difficulty = 'medium', mixedOutput = false } = req.body;
+    const {
+      quizId,
+      text,
+      numberOfQuestions = 10,
+      difficulty = 'medium',
+      mixedOutput = false,
+      aiProvider = 'custom',
+    } = req.body;
 
     if (!quizId) {
       return res.status(400).json({ error: 'quizId is required' });
@@ -59,17 +67,30 @@ export const generateQuestions = async (req, res) => {
 
     console.log(`[QuestionController] Generating ${numberOfQuestions} questions...`);
     
+    const distillationEnabled = process.env.ENABLE_DISTILLATION !== 'false';
+    const distilled = distillationEnabled
+      ? await getDistilledGuidance({ subject: quiz.subject, difficulty, maxExamples: 3 })
+      : { guidanceText: '' };
+
     let generationResult;
     try {
+      const orchestratorOptions = {
+        difficulty,
+        subject: quiz.subject,
+        preferredProvider: aiProvider,
+        distilledGuidance: distilled.guidanceText,
+      };
+
       if (mixedOutput) {
-        generationResult = await generateMCQsMixed(cleanedText, numberOfQuestions);
+        generationResult = await generateMCQsMixed(cleanedText, numberOfQuestions, orchestratorOptions);
       } else {
-        generationResult = await generateMCQsWithFallback(cleanedText, numberOfQuestions);
+        generationResult = await generateMCQsWithFallback(cleanedText, numberOfQuestions, orchestratorOptions);
       }
     } catch (error) {
       console.error('[QuestionController] MCQ Generation failed:', error.message);
 
       const providerHints = [
+        'Custom: In-house model (default, no config needed).',
         'Ollama: start local service (ollama serve) and pull model (ollama pull llama2 or ollama pull mistral).',
         'Groq: verify GROQ_API_KEY and optionally set GROQ_MODEL / GROQ_MODELS in backend/.env.local.',
         'Gemini: verify GEMINI_API_KEY and optionally set GEMINI_MODEL / GEMINI_MODELS in backend/.env.local.',
@@ -121,6 +142,7 @@ export const generateQuestions = async (req, res) => {
           difficulty,
           generatedBy: q.generatedBy || 'unknown',
           isApproved: false,
+          distilledFromLLM: ['custom', 'gemini', 'groq', 'ollama', 'mixed', 'hybrid'].includes(q.generatedBy || 'unknown'),
         });
 
         await question.save();
@@ -208,6 +230,7 @@ export const approveQuestion = async (req, res) => {
 
     question.isApproved = true;
     await question.save();
+    await markQuestionAsDistilled(question._id);
 
     res.json({
       message: 'Question approved',

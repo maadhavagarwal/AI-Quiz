@@ -8,9 +8,29 @@ import Button from '@/components/Button';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Alert from '@/components/Alert';
 
+interface TeacherProfile {
+  name: string;
+}
+
+interface RecentQuiz {
+  _id: string;
+  title: string;
+  subject: string;
+  totalQuestions: number;
+  isPublished: boolean;
+}
+
+interface DashboardAnalytics {
+  totalQuizzes: number;
+  totalQuestions: number;
+  totalStudents: number;
+  averageScore: number;
+  recentQuizzes: RecentQuiz[];
+}
+
 export default function Dashboard() {
-  const [teacher, setTeacher] = useState(null);
-  const [analytics, setAnalytics] = useState(null);
+  const [teacher, setTeacher] = useState<TeacherProfile | null>(null);
+  const [analytics, setAnalytics] = useState<DashboardAnalytics | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -34,8 +54,8 @@ export default function Dashboard() {
 
       setTeacher(profileRes);
       setAnalytics(analyticsRes);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load dashboard data');
     } finally {
       setLoading(false);
     }
@@ -46,6 +66,8 @@ export default function Dashboard() {
     localStorage.removeItem('teacher');
     router.push('/');
   };
+
+  const recentQuizzes = analytics?.recentQuizzes ?? [];
 
   if (loading) return <LoadingSpinner message="Loading dashboard..." />;
 
@@ -104,9 +126,9 @@ export default function Dashboard() {
         {/* Recent Quizzes */}
         <div className="card">
           <h2 className="text-xl font-bold mb-4">Recent Quizzes</h2>
-          {analytics?.recentQuizzes?.length > 0 ? (
+          {recentQuizzes.length > 0 ? (
             <div className="space-y-3">
-              {analytics.recentQuizzes.map(quiz => (
+              {recentQuizzes.map((quiz) => (
                 <div key={quiz._id} className="border-l-4 border-blue-500 pl-4 py-2">
                   <div className="font-semibold">{quiz.title}</div>
                   <div className="text-sm text-gray-600">

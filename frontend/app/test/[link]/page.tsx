@@ -9,20 +9,37 @@ import LoadingSpinner from '@/components/LoadingSpinner';
 import Alert from '@/components/Alert';
 import Button from '@/components/Button';
 
+interface TestQuestion {
+  _id: string;
+  question: string;
+  options: string[];
+}
+
+interface TestData {
+  quizTitle: string;
+  duration: number;
+  totalQuestions: number;
+  questions: TestQuestion[];
+}
+
+interface TestSession {
+  testId: string;
+}
+
 export default function TestPage() {
   const params = useParams();
   const router = useRouter();
   const rawLink = params.link;
   const testLink = Array.isArray(rawLink) ? rawLink[0] : rawLink;
 
-  const [test, setTest] = useState(null);
-  const [testSession, setTestSession] = useState(null);
+  const [test, setTest] = useState<TestData | null>(null);
+  const [testSession, setTestSession] = useState<TestSession | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [studentName, setStudentName] = useState('');
   const [studentEmail, setStudentEmail] = useState('');
   const [currentQuestionIdx, setCurrentQuestionIdx] = useState(0);
-  const [responses, setResponses] = useState({});
+  const [responses, setResponses] = useState<Record<string, number>>({});
   const [submitting, setSubmitting] = useState(false);
   const [timeRemaining, setTimeRemaining] = useState(0);
   const [tabSwitchCount, setTabSwitchCount] = useState(0);
@@ -37,8 +54,8 @@ export default function TestPage() {
     try {
       const response = await apiCall(`/tests/${testLink}`);
       setTest(response);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load test');
     } finally {
       setLoading(false);
     }
@@ -56,12 +73,16 @@ export default function TestPage() {
         body: JSON.stringify({ studentName, studentEmail }),
       });
       setTestSession(response);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to start test');
     }
   };
 
-  const handleSelectOption = async (optionIndex) => {
+  const handleSelectOption = async (optionIndex: number) => {
+    if (!test || !testSession?.testId) {
+      return;
+    }
+
     const currentQuestion = test.questions[currentQuestionIdx];
     setResponses(prev => ({ ...prev, [currentQuestion._id]: optionIndex }));
 
@@ -75,7 +96,7 @@ export default function TestPage() {
           timeSpent: 0,
         }),
       });
-    } catch (err) {
+    } catch (err: unknown) {
       console.error('Error submitting response:', err);
     }
   };
@@ -94,8 +115,8 @@ export default function TestPage() {
 
       localStorage.setItem('lastTestId', testSession.testId);
       router.replace(`/results?testId=${testSession.testId}`);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to submit test');
     } finally {
       setSubmitting(false);
     }
@@ -163,7 +184,7 @@ export default function TestPage() {
   useEffect(() => {
     if (!testSession) return;
 
-    setTimeRemaining(test?.duration * 60);
+    setTimeRemaining((test?.duration ?? 0) * 60);
     const interval = setInterval(() => {
       setTimeRemaining(prev => {
         if (prev <= 1) {
@@ -224,7 +245,10 @@ export default function TestPage() {
 
   // During test - use mobile-optimized view on mobile devices
   const currentQuestion = test?.questions[currentQuestionIdx];
-  const isLastQuestion = currentQuestionIdx === test?.questions.length - 1;
+  const totalQuestions = test?.totalQuestions ?? 0;
+  const questionCount = test?.questions.length ?? 0;
+  const progressPercent = totalQuestions > 0 ? Math.round(((currentQuestionIdx + 1) / totalQuestions) * 100) : 0;
+  const isLastQuestion = questionCount > 0 && currentQuestionIdx === questionCount - 1;
   const isFirstQuestion = currentQuestionIdx === 0;
 
   // Detect mobile device
@@ -239,7 +263,7 @@ export default function TestPage() {
         </div>
         <MobileTestView
           questionNumber={currentQuestionIdx + 1}
-          totalQuestions={test?.totalQuestions}
+          totalQuestions={totalQuestions}
           question={currentQuestion.question}
           options={currentQuestion.options}
           selectedOption={responses[currentQuestion._id] ?? null}
@@ -265,13 +289,13 @@ export default function TestPage() {
         {/* Progress Bar */}
         <div className="mb-6">
           <div className="flex justify-between mb-2">
-            <span className="font-semibold">Question {currentQuestionIdx + 1} of {test?.totalQuestions}</span>
-            <span className="text-gray-600">{Math.round(((currentQuestionIdx + 1) / test?.totalQuestions) * 100)}%</span>
+            <span className="font-semibold">Question {currentQuestionIdx + 1} of {totalQuestions}</span>
+            <span className="text-gray-600">{progressPercent}%</span>
           </div>
           <div className="w-full bg-gray-300 rounded-full h-2">
             <div
               className="bg-blue-600 h-2 rounded-full transition-all"
-              style={{ width: `${((currentQuestionIdx + 1) / test?.totalQuestions) * 100}%` }}
+              style={{ width: `${progressPercent}%` }}
             />
           </div>
         </div>
@@ -304,7 +328,7 @@ export default function TestPage() {
           ) : (
             <Button
               onClick={() => setCurrentQuestionIdx(prev => prev + 1)}
-              disabled={currentQuestionIdx === test?.totalQuestions - 1}
+              disabled={currentQuestionIdx === totalQuestions - 1}
             >
               Next →
             </Button>

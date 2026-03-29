@@ -2,6 +2,7 @@ import Test from '../models/Test.js';
 import Quiz from '../models/Quiz.js';
 import Question from '../models/Question.js';
 import { generateUniqueTestLink, calculateScore, shuffleArray } from '../utils/helpers.js';
+import { recordQuestionOutcome } from '../utils/distillationService.js';
 
 export const generateTestLink = async (req, res) => {
   try {
@@ -201,6 +202,7 @@ export const submitResponse = async (req, res) => {
     });
 
     await test.save();
+    await recordQuestionOutcome(questionId, isCorrect, timeSpent);
 
     res.json({
       message: 'Response recorded',

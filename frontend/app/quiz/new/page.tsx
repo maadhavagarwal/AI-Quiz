@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { ChangeEvent, FormEvent, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { getApiBaseUrl } from '@/lib/api';
 import Button from '@/components/Button';
@@ -19,20 +19,23 @@ export default function CreateQuizPage() {
     passingMarks: 40,
     marksPerQuestion: 1,
     duration: 30,
+    difficulty: 'medium' as 'easy' | 'medium' | 'hard',
+    aiProvider: 'custom' as 'custom' | 'groq' | 'gemini' | 'ollama' | 'mixed',
+    numberOfQuestions: 10,
   });
   const router = useRouter();
 
-  const handleChange = (e) => {
+  const handleChange = (e: ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     setFormData(prev => ({ 
       ...prev, 
-      [name]: ['totalmarks', 'passingMarks', 'marksPerQuestion', 'duration'].includes(name) 
+      [name]: ['totalmarks', 'passingMarks', 'marksPerQuestion', 'duration', 'numberOfQuestions'].includes(name) 
         ? parseInt(value) 
         : value 
     }));
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = (e: ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     const validFiles = files.filter(file => {
       const validTypes = ['application/pdf', 'text/plain', 'application/msword', 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'];
@@ -51,7 +54,7 @@ export default function CreateQuizPage() {
     setUploadedFiles(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = async (e) => {
+  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
     setError('');
@@ -66,6 +69,9 @@ export default function CreateQuizPage() {
       formDataWithFiles.append('passingMarks', formData.passingMarks.toString());
       formDataWithFiles.append('marksPerQuestion', formData.marksPerQuestion.toString());
       formDataWithFiles.append('duration', formData.duration.toString());
+      formDataWithFiles.append('difficulty', formData.difficulty);
+      formDataWithFiles.append('aiProvider', formData.aiProvider);
+      formDataWithFiles.append('numberOfQuestions', formData.numberOfQuestions.toString());
 
       // Add files
       uploadedFiles.forEach((file) => {
@@ -142,6 +148,68 @@ export default function CreateQuizPage() {
                 className="input-field w-full"
                 required
               />
+            </div>
+
+            {/* AI Generation Settings */}
+            <div className="border-t pt-4 mt-2">
+              <h3 className="text-sm font-semibold mb-3 text-gray-700">🤖 AI Generation Settings</h3>
+              <div className="grid grid-cols-1 gap-4 bg-gradient-to-br from-blue-50 to-purple-50 rounded-xl p-4 border border-blue-100">
+
+                {/* AI Model Selector */}
+                <div>
+                  <label className="block text-sm font-medium mb-1">AI Model</label>
+                  <select
+                    name="aiProvider"
+                    value={formData.aiProvider}
+                    onChange={handleChange}
+                    className="input-field w-full"
+                  >
+                    <option value="custom">🧠 Custom Quiz Model (In-house, Recommended)</option>
+                    <option value="mixed">🔀 Mixed (Custom + All LLMs)</option>
+                    <option value="groq">⚡ Groq LLM (Llama 3)</option>
+                    <option value="gemini">✨ Google Gemini</option>
+                    <option value="ollama">🦙 Ollama (Local)</option>
+                  </select>
+                  <p className="text-xs text-gray-500 mt-1">
+                    {formData.aiProvider === 'custom' && '✅ Standalone NLP + fine-tuned with LLMs when available. No API key required.'}
+                    {formData.aiProvider === 'mixed' && '🔀 Blends questions from all available providers for maximum diversity.'}
+                    {formData.aiProvider === 'groq' && '⚡ Uses Groq Cloud (requires GROQ_API_KEY). Fastest LLM.'}
+                    {formData.aiProvider === 'gemini' && '✨ Uses Google Gemini (requires GEMINI_API_KEY and billing).'}
+                    {formData.aiProvider === 'ollama' && '🦙 Uses local Ollama (requires Ollama running on your machine).'}
+                  </p>
+                </div>
+
+                <div className="grid grid-cols-2 gap-4">
+                  {/* Difficulty */}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">Question Difficulty</label>
+                    <select
+                      name="difficulty"
+                      value={formData.difficulty}
+                      onChange={handleChange}
+                      className="input-field w-full"
+                    >
+                      <option value="easy">🟢 Easy</option>
+                      <option value="medium">🟡 Medium</option>
+                      <option value="hard">🔴 Hard</option>
+                    </select>
+                  </div>
+
+                  {/* Number of Questions */}
+                  <div>
+                    <label className="block text-sm font-medium mb-1">No. of Questions</label>
+                    <input
+                      type="number"
+                      name="numberOfQuestions"
+                      value={formData.numberOfQuestions}
+                      onChange={handleChange}
+                      min={1}
+                      max={20}
+                      className="input-field w-full"
+                    />
+                  </div>
+                </div>
+              </div>
             </div>
 
             <div className="grid grid-cols-2 gap-4">

@@ -10,10 +10,10 @@ export default function Home() {
         <div className="max-w-6xl mx-auto px-4 py-4 flex justify-between items-center">
           <h1 className="text-2xl font-bold text-white">🎯 AI MCQ Maker</h1>
           <div className="space-x-4">
-            <Link href="/login" className="text-white hover:text-blue-200 transition">
+            <Link href="/auth" className="text-white hover:text-blue-200 transition">
               Teacher Login
             </Link>
-            <Link href="/take-test" className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition">
+            <Link href="/auth" className="bg-white text-blue-600 px-4 py-2 rounded-lg font-semibold hover:bg-blue-50 transition">
               Take Test
             </Link>
           </div>
@@ -34,9 +34,9 @@ export default function Home() {
             <Link href="/dashboard" className="btn-primary bg-white text-blue-600 hover:bg-blue-50">
               Get Started
             </Link>
-            <Link href="#features" className="btn-secondary border-2 border-white text-white hover:bg-white/10">
+            <a href="#features" className="btn-secondary border-2 border-white text-white hover:bg-white/10">
               Learn More
-            </Link>
+            </a>
           </div>
         </div>
 

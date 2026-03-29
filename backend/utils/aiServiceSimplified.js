@@ -16,7 +16,7 @@ const PROVIDER_PRIORITY = [
   'gemini',   // Backup - Cloud, expensive
 ];
 
-export async function generateMCQsWithFallback(text, numberOfQuestions = 5) {
+export async function generateMCQsWithFallback(text, numberOfQuestions = 5, context = {}) {
   console.log(`\n[MCQGenerator] Generating ${numberOfQuestions} MCQs...`);
   console.log(`[MCQGenerator] Provider order: ${PROVIDER_PRIORITY.join(' → ')}`);
   
@@ -28,11 +28,11 @@ export async function generateMCQsWithFallback(text, numberOfQuestions = 5) {
       
       let result;
       if (provider === 'ollama') {
-        result = await ollamaService.generateMCQsFromText(text, numberOfQuestions);
+        result = await ollamaService.generateMCQsFromText(text, numberOfQuestions, context);
       } else if (provider === 'groq') {
-        result = await groqService.generateMCQsFromText(text, numberOfQuestions);
+        result = await groqService.generateMCQsFromText(text, numberOfQuestions, context);
       } else if (provider === 'gemini') {
-        result = await geminiService.generateMCQsFromText(text, numberOfQuestions);
+        result = await geminiService.generateMCQsFromText(text, numberOfQuestions, context);
       }
 
       if (result && result.length > 0) {
@@ -68,7 +68,7 @@ export async function generateMCQsWithFallback(text, numberOfQuestions = 5) {
   };
 }
 
-export async function generateMCQsMixed(text, numberOfQuestions = 5) {
+export async function generateMCQsMixed(text, numberOfQuestions = 5, context = {}) {
   /**
    * Try to get questions from multiple providers
    */
@@ -81,11 +81,11 @@ export async function generateMCQsMixed(text, numberOfQuestions = 5) {
       let result;
 
       if (provider === 'ollama') {
-        result = await ollamaService.generateMCQsFromText(text, questionsPerProvider);
+        result = await ollamaService.generateMCQsFromText(text, questionsPerProvider, context);
       } else if (provider === 'groq') {
-        result = await groqService.generateMCQsFromText(text, questionsPerProvider);
+        result = await groqService.generateMCQsFromText(text, questionsPerProvider, context);
       } else if (provider === 'gemini') {
-        result = await geminiService.generateMCQsFromText(text, questionsPerProvider);
+        result = await geminiService.generateMCQsFromText(text, questionsPerProvider, context);
       }
 
       if (result && result.length > 0) {

@@ -63,16 +63,22 @@ function initializeGroq() {
   return groqClient;
 }
 
-export async function generateMCQsFromText(text, numberOfQuestions = 5) {
+export async function generateMCQsFromText(text, numberOfQuestions = 5, context = {}) {
   try {
     const groq = initializeGroq();
     
+    const distilledGuidance = context?.distilledGuidance
+      ? `\nUse these distilled best-practice examples from previously approved high-quality questions:\n${context.distilledGuidance}\n`
+      : '';
+
     const prompt = `You are an expert educator. Generate ${numberOfQuestions} multiple-choice questions from the following text. 
 For each question, provide:
 1. The question text
 2. Four options (labeled A, B, C, D)
 3. The correct answer (A, B, C, or D)
 4. A detailed explanation
+
+${distilledGuidance}
 
 Format as JSON array with this structure:
 [

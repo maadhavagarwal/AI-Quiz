@@ -8,8 +8,17 @@ import Button from '@/components/Button';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Alert from '@/components/Alert';
 
+interface QuizItem {
+  _id: string;
+  title: string;
+  subject: string;
+  totalQuestions: number;
+  duration: number;
+  isPublished: boolean;
+}
+
 export default function QuizzesPage() {
-  const [quizzes, setQuizzes] = useState([]);
+  const [quizzes, setQuizzes] = useState<QuizItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -27,21 +36,21 @@ export default function QuizzesPage() {
     try {
       const response = await apiCall('/quizzes?limit=100');
       setQuizzes(response.quizzes);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load quizzes');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleDeleteQuiz = async (quizId) => {
+  const handleDeleteQuiz = async (quizId: string) => {
     if (!confirm('Are you sure you want to delete this quiz?')) return;
 
     try {
       await apiCall(`/quizzes/${quizId}`, { method: 'DELETE' });
-      setQuizzes(quizzes.filter(q => q._id !== quizId));
-    } catch (err) {
-      setError(err.message);
+      setQuizzes(quizzes.filter((q) => q._id !== quizId));
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to delete quiz');
     }
   };
 

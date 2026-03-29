@@ -5,6 +5,19 @@
 
 // Model Presets by Provider
 export const MODEL_PRESETS = {
+  custom: {
+    'CustomQuizModel-v1.0': {
+      name:           'CustomQuizModel-v1.0',
+      type:           'custom',
+      description:    'In-house NLP quiz generator with distillation + LLM fine-tuning layer',
+      speed:          'Ultra-fast (<0.1s standalone, 5-15s with fine-tuning)',
+      quality:        'Good (standalone) → Excellent (fine-tuned)',
+      requiresApiKey: false,
+      recommended:    true,
+      capabilities:   ['Standalone NLP', 'LLM fine-tuning', 'Distillation guidance', 'Difficulty-aware'],
+    },
+  },
+
   ollama: {
     llama2: {
       name: 'llama2',

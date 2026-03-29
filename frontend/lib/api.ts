@@ -135,3 +135,75 @@ export async function uploadFile(file: File, endpoint: string) {
 
   return response.json();
 }
+
+// ─── Custom Quiz Model API ─────────────────────────────────────────────────
+
+export type Difficulty = 'easy' | 'medium' | 'hard';
+export type AIProvider = 'custom' | 'groq' | 'gemini' | 'ollama' | 'mixed';
+
+export interface MCQQuestion {
+  question: string;
+  options: string[];
+  correctAnswer: number;
+  explanation: string;
+  difficulty?: Difficulty;
+  generatedBy?: string;
+  fineTuned?: boolean;
+  mergedFrom?: string;
+  matchScore?: number;
+}
+
+export interface GenerateMCQsParams {
+  text: string;
+  numberOfQuestions?: number;
+  difficulty?: Difficulty;
+  subject?: string;
+  provider?: AIProvider;
+}
+
+export interface CustomGenerateParams extends GenerateMCQsParams {
+  fineTune?: boolean; // false = pure custom model, no external API calls
+}
+
+/**
+ * Generate MCQs using the standard orchestrator pipeline.
+ * Default provider is 'custom' (in-house model + optional LLM fine-tuning).
+ */
+export async function generateMCQs(params: GenerateMCQsParams) {
+  return apiCall('/ai/generate-mcqs', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
+/**
+ * Generate MCQs directly from the custom in-house model.
+ * Set fineTune=false for pure standalone generation (fastest, no API).
+ */
+export async function generateWithCustomModel(params: CustomGenerateParams) {
+  return apiCall('/ai/custom/generate', {
+    method: 'POST',
+    body: JSON.stringify(params),
+  });
+}
+
+/**
+ * Get custom model info and capabilities.
+ */
+export async function getCustomModelInfo() {
+  return apiCall('/ai/custom/info', { method: 'GET' });
+}
+
+/**
+ * Get all AI provider statuses.
+ */
+export async function getAIProviders() {
+  return apiCall('/ai/providers', { method: 'GET' });
+}
+
+/**
+ * Get AI system status including custom model.
+ */
+export async function getAIStatus() {
+  return apiCall('/ai/status', { method: 'GET' });
+}

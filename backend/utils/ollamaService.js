@@ -42,12 +42,16 @@ async function checkOllamaAvailability() {
   }
 }
 
-export async function generateMCQsFromText(text, numberOfQuestions = 5) {
+export async function generateMCQsFromText(text, numberOfQuestions = 5, context = {}) {
   try {
     const isAvailable = await checkOllamaAvailability();
     if (!isAvailable) {
       throw new Error(`Ollama service not available at ${OLLAMA_API_URL}. Ensure Ollama is running: ollama serve`);
     }
+
+    const distilledGuidance = context?.distilledGuidance
+      ? `\nUse these distilled best-practice examples from previously approved high-quality questions:\n${context.distilledGuidance}\n`
+      : '';
 
     const prompt = `Generate exactly ${numberOfQuestions} multiple-choice questions from the following text. 
 Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
@@ -61,6 +65,8 @@ Return ONLY valid JSON (no markdown, no code blocks) with this exact structure:
     }
   ]
 }
+
+${distilledGuidance}
 
 Text: ${text}`;
 

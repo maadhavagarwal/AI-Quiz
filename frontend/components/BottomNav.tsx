@@ -2,6 +2,7 @@
 'use client';
 
 import Link from 'next/link';
+import type { Route } from 'next';
 import { usePathname } from 'next/navigation';
 
 export default function BottomNav() {
@@ -9,7 +10,7 @@ export default function BottomNav() {
 
   const isActive = (path: string) => pathname === path || pathname.startsWith(path);
 
-  const navItems = [
+  const navItems: Array<{ href: Route; icon: string; label: string }> = [
     { href: '/dashboard', icon: '📊', label: 'Dashboard' },
     { href: '/quizzes', icon: '📚', label: 'Quizzes' },
     { href: '/quiz/new', icon: '➕', label: 'Create' },

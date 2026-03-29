@@ -1,14 +1,29 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { Suspense, useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { apiCall } from '@/lib/api';
 import LoadingSpinner from '@/components/LoadingSpinner';
 import Alert from '@/components/Alert';
 import Button from '@/components/Button';
 
-export default function ResultsPage() {
-  const [results, setResults] = useState(null);
+interface ResultReview {
+  question: string;
+  selectedOption: string;
+  correctOption: string;
+  isCorrect: boolean;
+}
+
+interface TestResults {
+  studentName: string;
+  score: number;
+  totalMarks: number;
+  percentage?: number;
+  responses?: ResultReview[];
+}
+
+function ResultsContent() {
+  const [results, setResults] = useState<TestResults | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const router = useRouter();
@@ -29,8 +44,8 @@ export default function ResultsPage() {
 
       const response = await apiCall(`/tests/${testId}/results`);
       setResults(response);
-    } catch (err) {
-      setError(err.message);
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : 'Failed to load results');
     } finally {
       setLoading(false);
     }
@@ -145,5 +160,13 @@ export default function ResultsPage() {
         </div>
       </div>
     </div>
+  );
+}
+
+export default function ResultsPage() {
+  return (
+    <Suspense fallback={<LoadingSpinner message="Loading results..." />}>
+      <ResultsContent />
+    </Suspense>
   );
 }

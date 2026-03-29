@@ -1,5 +1,8 @@
 /**
- * AI Model Routes - API endpoints for AI-powered MCQ generation and analysis
+ * AI Model Routes
+ * ────────────────
+ * API endpoints for AI-powered MCQ generation and analysis.
+ * Includes dedicated routes for the custom in-house quiz model.
  */
 
 import express from 'express';
@@ -8,25 +11,26 @@ import { authMiddleware } from '../middleware/auth.js';
 
 const router = express.Router();
 
-// Initialize AI Model Service
+// ─── Service Init ─────────────────────────────────────────────────────────────
 router.post('/init', aiModelController.initializeAI);
 
-// Generate MCQs from text
-router.post('/generate-mcqs', authMiddleware, aiModelController.generateMCQs);
-
-// Generate MCQs from uploaded file
+// ─── Standard MCQ Generation (uses orchestrator → custom → fallback) ──────────
+router.post('/generate-mcqs',           authMiddleware, aiModelController.generateMCQs);
 router.post('/generate-mcqs-from-file', authMiddleware, aiModelController.generateMCQsFromFile);
 
-// Analyze quiz answers
+// ─── Custom In-House Model (direct access) ────────────────────────────────────
+// POST /api/ai/custom/generate  — generate with fine-tuning control
+router.post('/custom/generate', authMiddleware, aiModelController.generateWithCustomModel);
+
+// GET  /api/ai/custom/info      — model metadata & capabilities
+router.get('/custom/info', aiModelController.getCustomModelInfo);
+
+// ─── Answer Analysis ──────────────────────────────────────────────────────────
 router.post('/analyze-answers', authMiddleware, aiModelController.analyzeAnswers);
 
-// Get available AI providers
-router.get('/providers', aiModelController.getProviders);
-
-// Switch AI provider
+// ─── Provider Management ──────────────────────────────────────────────────────
+router.get('/providers',        aiModelController.getProviders);
 router.post('/switch-provider', authMiddleware, aiModelController.switchProvider);
-
-// Get AI model status
-router.get('/status', aiModelController.getStatus);
+router.get('/status',           aiModelController.getStatus);
 
 export default router;
