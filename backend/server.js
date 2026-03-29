@@ -118,6 +118,25 @@ app.use('/api/debug', debugRoutes);
 app.use('/api/models', modelsRoutes);
 app.use('/api/ai', aiModelRoutes);
 
+// Debug: List all routes
+app.get('/api/debug/routes', (req, res) => {
+  const routes = [];
+  app._router.stack.forEach((middleware) => {
+    if (middleware.route) {
+      routes.push(`${Object.keys(middleware.route.methods).join(',').toUpperCase()} ${middleware.route.path}`);
+    } else if (middleware.name === 'router') {
+      middleware.handle.stack.forEach((handler) => {
+        if (handler.route) {
+          const path = handler.route.path;
+          const methods = Object.keys(handler.route.methods).join(',').toUpperCase();
+          routes.push(`${methods} ${middleware.regexp.toString().split('/api/')[1]?.split('\\/')[0] || ''}/${path.replace(/^\//, '')}`);
+        }
+      });
+    }
+  });
+  res.json({ count: routes.length, routes: routes.sort() });
+});
+
 // 404 handler
 app.use((req, res) => {
   res.status(404).json({ error: 'Route not found' });

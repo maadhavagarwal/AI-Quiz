@@ -22,20 +22,28 @@ export async function getApiBaseUrl(): Promise<string> {
     return resolvedApiUrl;
   }
 
+  console.log('🔍 Resolving API base URL from candidates:', API_CANDIDATES);
+
   for (const candidate of API_CANDIDATES) {
     try {
-      const response = await fetch(`${candidate}/health`, { method: 'GET' });
+      // Ensure no trailing slash for the base to keep join logic simple
+      const base = candidate.endsWith('/') ? candidate.slice(0, -1) : candidate;
+      const response = await fetch(`${base}/health`, { method: 'GET' });
+      
       if (response.ok) {
-        resolvedApiUrl = candidate;
-        return candidate;
+        resolvedApiUrl = base;
+        console.log('✅ Connected to backend:', resolvedApiUrl);
+        return resolvedApiUrl;
       }
     } catch {
       // Try next candidate.
     }
   }
 
-  // Fall back to first configured candidate so error messages are still meaningful.
-  resolvedApiUrl = API_CANDIDATES[0] || 'http://localhost:9876/api';
+  // Fall back to first configured candidate
+  const fallback = API_CANDIDATES[0] || 'http://localhost:9876/api';
+  resolvedApiUrl = fallback.endsWith('/') ? fallback.slice(0, -1) : fallback;
+  console.warn('⚠️ No active backend found. Falling back to:', resolvedApiUrl);
   return resolvedApiUrl;
 }
 
@@ -84,7 +92,8 @@ export async function apiCall(
   };
 
   let apiBase = await getApiBaseUrl();
-  let url = `${apiBase}${endpoint}`;
+  const cleanEndpoint = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+  let url = `${apiBase}${cleanEndpoint}`;
 
   try {
     return await executeJsonRequest(url, config);
