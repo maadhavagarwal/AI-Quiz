@@ -6,7 +6,8 @@ import { fileURLToPath } from 'url';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-// This runs immediately when this file is imported
+// Load .env FIRST, then overlay with .env.local if it exists
+dotenv.config(); 
 dotenv.config({ path: path.join(__dirname, '.env.local') });
 
 console.log('✅ Environment variables loaded');
